@@ -465,7 +465,7 @@ module Connection = struct
   (* Close all pipes if exceptions leak out.  This will implicitly stop
      [run_reader_loop] and [run_writer_loop], since they'll just keep getting EOFs. *)
   let with_cleanup t ~f =
-    let%map result = Deferred.Or_error.try_with ~name:"ssl_pipe" f in
+    let%map result = Deferred.Or_error.try_with ~rest:`Raise ~run:`Now ~name:"ssl_pipe" f in
     Result.iter_error result ~f:(fun error ->
       if verbose
       then Debug.amf [%here] "%s: ERROR: %s" t.name (Error.to_string_hum error);
@@ -573,7 +573,7 @@ let client
       ~ssl_to_net
       ()
   =
-  Deferred.Or_error.try_with (fun () ->
+  Deferred.Or_error.try_with ~rest:`Raise ~run:`Now (fun () ->
     let%bind context =
       context_exn (name, version, ca_file, ca_path, options, crt_file, key_file)
     in
@@ -615,7 +615,7 @@ let server
       ~ssl_to_net
       ()
   =
-  Deferred.Or_error.try_with (fun () ->
+  Deferred.Or_error.try_with ~rest:`Raise ~run:`Now (fun () ->
     let%bind context =
       context_exn
         (name, version, ca_file, ca_path, options, Some crt_file, Some key_file)
