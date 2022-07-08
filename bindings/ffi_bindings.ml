@@ -63,14 +63,19 @@ module Types (F : Cstubs.Types.TYPE) = struct
         ~f:(fun c_sym ->
           let ml_sym = String.chop_prefix_exn c_sym ~prefix:"SSL_OP_" |> String.lowercase in
           let fallback = "Unsigned.ULong.zero" in
-          print_endline
+          print_string
             [%string
               {|
     [%%if defined JSC_%{c_sym}]
+
     let %{ml_sym} = F.constant "%{c_sym}" F.ulong
+
     [%%else]
+
     let %{ml_sym} = %{fallback}
-    [%%endif] |}])
+
+    [%%endif]|}]);
+      print_string "\n    "
     *)
     [%%if defined JSC_SSL_OP_NO_SSLv2]
 
@@ -232,14 +237,19 @@ module Bindings (F : Cstubs.FOREIGN) = struct
             then "sslv23"
             else [%string {|helper "%{c_sym}" dummy|}]
           in
-          print_endline
+          print_string
             [%string
               {|
     [%%if defined JSC_%{c_sym}]
+
     let %{ml_sym} = helper "%{c_sym}" implemented
+
     [%%else]
+
     let %{ml_sym} = %{fallback}
-    [%%endif] |}])
+
+    [%%endif]|}]);
+      print_string "\n    "
     *)
     [%%if defined JSC_SSLv23_method]
 
