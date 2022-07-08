@@ -46,7 +46,6 @@ int main ( int argc, char **argv ) {
    ; "TLSv1_method"
    ; "TLSv1_1_method"
    ; "TLSv1_2_method"
-   ; "TLSv1_3_method"
    ] |> List.iter ~f:(fun sym -> print_string [%string {|
    if(function_defined(handle, "%{sym}")) {
      %{witness_defined sym};
@@ -105,12 +104,6 @@ int main ( int argc, char **argv ) {
      printf("#define JSC_TLSv1_2_method\n"); success++;;
    } else {
      printf("#undef JSC_TLSv1_2_method\n");;
-   }
-
-   if(function_defined(handle, "TLSv1_3_method")) {
-     printf("#define JSC_TLSv1_3_method\n"); success++;;
-   } else {
-     printf("#undef JSC_TLSv1_3_method\n");;
    }
 
    #ifdef SSL_OP_NO_SSLv2

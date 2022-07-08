@@ -79,59 +79,71 @@ let get_error_stack =
     |> List.rev_map ~f:err_error_string
 ;;
 
+let options_only_tlsv1_3 =
+  List.filter Opt.all ~f:(function
+    | No_sslv2 | No_sslv3 | No_tlsv1 | No_tlsv1_1 | No_tlsv1_2 -> true
+    | No_tlsv1_3 -> false)
+;;
+
+let version_method_and_options (version : Version.t) =
+  match version with
+  | Sslv23 -> Ssl_method.sslv23 (), []
+  | Tls -> Ssl_method.tls (), []
+  | Sslv3 -> Ssl_method.sslv3 (), []
+  | Tlsv1 -> Ssl_method.tlsv1 (), []
+  | Tlsv1_1 -> Ssl_method.tlsv1_1 (), []
+  | Tlsv1_2 -> Ssl_method.tlsv1_2 (), []
+  | Tlsv1_3 -> Ssl_method.tls (), options_only_tlsv1_3
+;;
+
+let bindings_options_to_ulong options =
+  let module O = Types.Ssl_op in
+  let default_options =
+    List.fold
+      [ O.single_dh_use; O.single_ecdh_use ]
+      ~init:Unsigned.ULong.zero
+      ~f:Unsigned.ULong.logor
+  in
+  List.fold options ~init:default_options ~f:(fun acc (opt : Opt.t) ->
+    let o =
+      match opt with
+      | No_sslv2 -> O.no_sslv2
+      | No_sslv3 -> O.no_sslv3
+      | No_tlsv1 -> O.no_tlsv1
+      | No_tlsv1_1 -> O.no_tlsv1_1
+      | No_tlsv1_2 -> O.no_tlsv1_2
+      | No_tlsv1_3 -> O.no_tlsv1_3
+    in
+    Unsigned.ULong.logor acc o)
+;;
+
 module Ssl_ctx = struct
   type t = Bindings.Ssl_ctx.t [@@deriving sexp_of]
 
   (* for use in ctypes type signatures *)
-
-  let create_exn ver =
-    let ver_method =
-      let module V = Version in
-      match ver with
-      | V.Sslv23 -> Ssl_method.sslv23 ()
-      | V.Tls -> Ssl_method.tls ()
-      | V.Sslv3 -> Ssl_method.sslv3 ()
-      | V.Tlsv1 -> Ssl_method.tlsv1 ()
-      | V.Tlsv1_1 -> Ssl_method.tlsv1_1 ()
-      | V.Tlsv1_2 -> Ssl_method.tlsv1_2 ()
-      | V.Tlsv1_3 -> Ssl_method.tlsv1_3 ()
-    in
-    match Bindings.Ssl_ctx.new_ ver_method with
-    | None -> failwith "Could not allocate a new SSL context."
-    | Some p ->
-      Gc.add_finalizer_exn p Bindings.Ssl_ctx.free;
-      p
-  ;;
 
   let override_default_insecure__set_security_level t level =
     Bindings.Ssl_ctx.override_default_insecure__set_security_level t level
   ;;
 
   let set_options context options =
-    let module O = Types.Ssl_op in
-    let default_options =
-      List.fold
-        [ O.single_dh_use; O.single_ecdh_use ]
-        ~init:Unsigned.ULong.zero
-        ~f:Unsigned.ULong.logor
-    in
-    let opts =
-      List.fold options ~init:default_options ~f:(fun acc (opt : Opt.t) ->
-        let o =
-          match opt with
-          | No_sslv2 -> O.no_sslv2
-          | No_sslv3 -> O.no_sslv3
-          | No_tlsv1 -> O.no_tlsv1
-          | No_tlsv1_1 -> O.no_tlsv1_1
-          | No_tlsv1_2 -> O.no_tlsv1_2
-          | No_tlsv1_3 -> O.no_tlsv1_3
-        in
-        Unsigned.ULong.logor acc o)
-    in
+    let opts = bindings_options_to_ulong options in
     (* SSL_CTX_set_options(3) returns the new options bitmask after adding options.  We
        don't really have a use for this, so ignore. *)
     let (_ : Unsigned.ULong.t) = Bindings.Ssl_ctx.set_options context opts in
     ()
+  ;;
+
+  let create_exn ver =
+    let ver_method, options = version_method_and_options ver in
+    match Bindings.Ssl_ctx.new_ ver_method with
+    | None -> failwith "Could not allocate a new SSL context."
+    | Some p ->
+      Gc.add_finalizer_exn p Bindings.Ssl_ctx.free;
+      (match options with
+       | [] -> ()
+       | options -> set_options p options);
+      p
   ;;
 
   let set_session_id_context context sid_ctx =
@@ -362,20 +374,21 @@ module Ssl = struct
       p
   ;;
 
+  let set_options context options =
+    let opts = bindings_options_to_ulong options in
+    (* SSL_set_options(3) returns the new options bitmask after adding options.  We
+       don't really have a use for this, so ignore. *)
+    let (_ : Unsigned.ULong.t) = Bindings.Ssl.set_options context opts in
+    ()
+  ;;
+
   let set_method t version =
-    let version_method =
-      let open Version in
-      match version with
-      | Sslv23 -> Ssl_method.sslv23 ()
-      | Tls -> Ssl_method.tls ()
-      | Sslv3 -> Ssl_method.sslv3 ()
-      | Tlsv1 -> Ssl_method.tlsv1 ()
-      | Tlsv1_1 -> Ssl_method.tlsv1_1 ()
-      | Tlsv1_2 -> Ssl_method.tlsv1_2 ()
-      | Tlsv1_3 -> Ssl_method.tlsv1_3 ()
-    in
+    let version_method, options = version_method_and_options version in
     match Bindings.Ssl.set_method t version_method with
-    | 1 -> ()
+    | 1 ->
+      (match options with
+       | [] -> ()
+       | options -> set_options t options)
     | e -> failwithf "Failed to set SSL version: %i" e ()
   ;;
 
