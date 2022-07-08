@@ -47,134 +47,119 @@ int main ( int argc, char **argv ) {
    ; "TLSv1_1_method"
    ; "TLSv1_2_method"
    ; "TLSv1_3_method"
-   ] |> List.iter ~f:(fun sym -> print_endline [%string {|
-   if(function_defined(handle, "%{sym}")) { 
+   ] |> List.iter ~f:(fun sym -> print_string [%string {|
+   if(function_defined(handle, "%{sym}")) {
      %{witness_defined sym};
-   } else { 
+   } else {
      %{witness_undef sym};
-   } 
-   |}]);;
-   
+   }
+|}]);;
+
    [ "SSL_OP_NO_SSLv2"
    ; "SSL_OP_NO_SSLv3"
-   ; "SSL_OP_NO_TLSv1" 
+   ; "SSL_OP_NO_TLSv1"
    ; "SSL_OP_NO_TLSv1_1"
    ; "SSL_OP_NO_TLSv1_2"
    ; "SSL_OP_NO_TLSv1_3"
    ; "SSL_OP_SINGLE_DH_USE"
    ; "SSL_OP_SINGLE_ECDH_USE"
-   ] |> List.iter ~f:(fun sym -> print_endline [%string {|
+   ] |> List.iter ~f:(fun sym -> print_string [%string {|
    #ifdef %{sym}
      %{witness_defined sym}
    #else
      %{witness_undef sym}
    #endif
-   |}]);;
+|}]);;
    */
-   if(function_defined(handle, "SSLv23_method")) { 
+   if(function_defined(handle, "SSLv23_method")) {
      printf("#define JSC_SSLv23_method\n"); success++;;
-   } else { 
+   } else {
      printf("#undef JSC_SSLv23_method\n");;
-   } 
-   
+   }
 
-   if(function_defined(handle, "TLS_method")) { 
+   if(function_defined(handle, "TLS_method")) {
      printf("#define JSC_TLS_method\n"); success++;;
-   } else { 
+   } else {
      printf("#undef JSC_TLS_method\n");;
-   } 
-   
+   }
 
-   if(function_defined(handle, "SSLv3_method")) { 
+   if(function_defined(handle, "SSLv3_method")) {
      printf("#define JSC_SSLv3_method\n"); success++;;
-   } else { 
+   } else {
      printf("#undef JSC_SSLv3_method\n");;
-   } 
-   
+   }
 
-   if(function_defined(handle, "TLSv1_method")) { 
+   if(function_defined(handle, "TLSv1_method")) {
      printf("#define JSC_TLSv1_method\n"); success++;;
-   } else { 
+   } else {
      printf("#undef JSC_TLSv1_method\n");;
-   } 
-   
+   }
 
-   if(function_defined(handle, "TLSv1_1_method")) { 
+   if(function_defined(handle, "TLSv1_1_method")) {
      printf("#define JSC_TLSv1_1_method\n"); success++;;
-   } else { 
+   } else {
      printf("#undef JSC_TLSv1_1_method\n");;
-   } 
-   
+   }
 
-   if(function_defined(handle, "TLSv1_2_method")) { 
+   if(function_defined(handle, "TLSv1_2_method")) {
      printf("#define JSC_TLSv1_2_method\n"); success++;;
-   } else { 
+   } else {
      printf("#undef JSC_TLSv1_2_method\n");;
-   } 
-   
+   }
 
-   if(function_defined(handle, "TLSv1_3_method")) { 
+   if(function_defined(handle, "TLSv1_3_method")) {
      printf("#define JSC_TLSv1_3_method\n"); success++;;
-   } else { 
+   } else {
      printf("#undef JSC_TLSv1_3_method\n");;
-   } 
-   
+   }
 
    #ifdef SSL_OP_NO_SSLv2
      printf("#define JSC_SSL_OP_NO_SSLv2\n"); success++;
    #else
      printf("#undef JSC_SSL_OP_NO_SSLv2\n");
    #endif
-   
 
    #ifdef SSL_OP_NO_SSLv3
      printf("#define JSC_SSL_OP_NO_SSLv3\n"); success++;
    #else
      printf("#undef JSC_SSL_OP_NO_SSLv3\n");
    #endif
-   
 
    #ifdef SSL_OP_NO_TLSv1
      printf("#define JSC_SSL_OP_NO_TLSv1\n"); success++;
    #else
      printf("#undef JSC_SSL_OP_NO_TLSv1\n");
    #endif
-   
 
    #ifdef SSL_OP_NO_TLSv1_1
      printf("#define JSC_SSL_OP_NO_TLSv1_1\n"); success++;
    #else
      printf("#undef JSC_SSL_OP_NO_TLSv1_1\n");
    #endif
-   
 
    #ifdef SSL_OP_NO_TLSv1_2
      printf("#define JSC_SSL_OP_NO_TLSv1_2\n"); success++;
    #else
      printf("#undef JSC_SSL_OP_NO_TLSv1_2\n");
    #endif
-   
 
    #ifdef SSL_OP_NO_TLSv1_3
      printf("#define JSC_SSL_OP_NO_TLSv1_3\n"); success++;
    #else
      printf("#undef JSC_SSL_OP_NO_TLSv1_3\n");
    #endif
-   
 
    #ifdef SSL_OP_SINGLE_DH_USE
      printf("#define JSC_SSL_OP_SINGLE_DH_USE\n"); success++;
    #else
      printf("#undef JSC_SSL_OP_SINGLE_DH_USE\n");
    #endif
-   
 
    #ifdef SSL_OP_SINGLE_ECDH_USE
      printf("#define JSC_SSL_OP_SINGLE_ECDH_USE\n"); success++;
    #else
      printf("#undef JSC_SSL_OP_SINGLE_ECDH_USE\n");
    #endif
-   
 /*$*/
 
   if(success == 0) {
