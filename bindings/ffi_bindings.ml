@@ -210,7 +210,6 @@ module Bindings (F : Cstubs.FOREIGN) = struct
         ; "TLSv1_method"
         ; "TLSv1_1_method"
         ; "TLSv1_2_method"
-        ; "TLSv1_3_method"
         ]
         ~f:(fun c_sym ->
           let ml_sym =
@@ -287,15 +286,6 @@ module Bindings (F : Cstubs.FOREIGN) = struct
     [%%else]
 
     let tlsv1_2 = helper "TLSv1_2_method" dummy
-
-    [%%endif]
-    [%%if defined JSC_TLSv1_3_method]
-
-    let tlsv1_3 = helper "TLSv1_3_method" implemented
-
-    [%%else]
-
-    let tlsv1_3 = helper "TLSv1_3_method" dummy
 
     [%%endif]
     (*$*)
@@ -597,6 +587,7 @@ module Bindings (F : Cstubs.FOREIGN) = struct
     (* free with SSL_free() (source: manpage of SSL_free(3)) *)
     let new_ = foreign "SSL_new" Ctypes.(Ssl_ctx.t @-> returning t_opt)
     let free = foreign "SSL_free" Ctypes.(t @-> returning void)
+    let set_options = foreign "SSL_set_options" Ctypes.(t @-> ulong @-> returning ulong)
 
     let set_method =
       foreign "SSL_set_ssl_method" Ctypes.(t @-> Ssl_method.t @-> returning int)
