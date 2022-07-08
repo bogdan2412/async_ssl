@@ -61,16 +61,21 @@ module Types (F : Cstubs.Types.TYPE) = struct
         ; "SSL_OP_SINGLE_ECDH_USE"
         ]
         ~f:(fun c_sym ->
-        let ml_sym = String.chop_prefix_exn c_sym ~prefix:"SSL_OP_" |> String.lowercase in
-        let fallback = "Unsigned.ULong.zero" in
-        print_endline
-          [%string
-            {|
+          let ml_sym = String.chop_prefix_exn c_sym ~prefix:"SSL_OP_" |> String.lowercase in
+          let fallback = "Unsigned.ULong.zero" in
+          print_string
+            [%string
+              {|
     [%%if defined JSC_%{c_sym}]
+
     let %{ml_sym} = F.constant "%{c_sym}" F.ulong
+
     [%%else]
+
     let %{ml_sym} = %{fallback}
-    [%%endif] |}])
+
+    [%%endif]|}]);
+      print_string "\n    "
     *)
     [%%if defined JSC_SSL_OP_NO_SSLv2]
 
@@ -226,20 +231,25 @@ module Bindings (F : Cstubs.FOREIGN) = struct
         ; "TLSv1_3_method"
         ]
         ~f:(fun c_sym ->
-        let ml_sym = String.chop_suffix_exn c_sym ~suffix:"_method" |> String.lowercase in
-        let fallback =
-          if String.equal c_sym "TLS_method"
-          then "sslv23"
-          else [%string {|helper "%{c_sym}" dummy|}]
-        in
-        print_endline
-          [%string
-            {|
+          let ml_sym = String.chop_suffix_exn c_sym ~suffix:"_method" |> String.lowercase in
+          let fallback =
+            if String.equal c_sym "TLS_method"
+            then "sslv23"
+            else [%string {|helper "%{c_sym}" dummy|}]
+          in
+          print_string
+            [%string
+              {|
     [%%if defined JSC_%{c_sym}]
+
     let %{ml_sym} = helper "%{c_sym}" implemented
+
     [%%else]
+
     let %{ml_sym} = %{fallback}
-    [%%endif] |}])
+
+    [%%endif]|}]);
+      print_string "\n    "
     *)
     [%%if defined JSC_SSLv23_method]
 
