@@ -1,3 +1,5 @@
+(cinaps (files discover.c ffi_bindings.ml) (libraries core) (preprocess (pps ppx_jane)))
+
 (rule
  (targets openssl-ccopt.sexp openssl-cclib.sexp openssl-ccopt openssl-cclib)
  (deps

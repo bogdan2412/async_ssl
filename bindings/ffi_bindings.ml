@@ -50,6 +50,7 @@ module Types (F : Cstubs.Types.TYPE) = struct
     (*$
       open Core;;
 
+      print_endline "";
       List.iter
         [ "SSL_OP_NO_SSLv2"
         ; "SSL_OP_NO_SSLv3"
@@ -65,14 +66,16 @@ module Types (F : Cstubs.Types.TYPE) = struct
             String.chop_prefix_exn c_sym ~prefix:"SSL_OP_" |> String.lowercase
           in
           let fallback = "Unsigned.ULong.zero" in
-          print_endline
-            [%string
-              {|
-    [%%if defined JSC_%{c_sym}]
-    let %{ml_sym} = F.constant "%{c_sym}" F.ulong
-    [%%else]
-    let %{ml_sym} = %{fallback}
-    [%%endif] |}])
+          print_endline [%string {|    [%%if defined JSC_%{c_sym}]|}];
+          print_endline "";
+          print_endline [%string {|    let %{ml_sym} = F.constant "%{c_sym}" F.ulong|}];
+          print_endline "";
+          print_endline [%string {|    [%%else]|}];
+          print_endline "";
+          print_endline [%string {|    let %{ml_sym} = %{fallback}|}];
+          print_endline "";
+          print_endline [%string {|    [%%endif]|}]);
+      print_string "    "
     *)
     [%%if defined JSC_SSL_OP_NO_SSLv2]
 
@@ -218,6 +221,7 @@ module Bindings (F : Cstubs.FOREIGN) = struct
     (*$
       open Core;;
 
+      print_endline "";
       List.iter
         [ "SSLv23_method"
         ; "TLS_method"
@@ -236,14 +240,16 @@ module Bindings (F : Cstubs.FOREIGN) = struct
             then "sslv23"
             else [%string {|helper "%{c_sym}" dummy|}]
           in
-          print_endline
-            [%string
-              {|
-    [%%if defined JSC_%{c_sym}]
-    let %{ml_sym} = helper "%{c_sym}" implemented
-    [%%else]
-    let %{ml_sym} = %{fallback}
-    [%%endif] |}])
+          print_endline [%string {|    [%%if defined JSC_%{c_sym}]|}];
+          print_endline "";
+          print_endline [%string {|    let %{ml_sym} = helper "%{c_sym}" implemented|}];
+          print_endline "";
+          print_endline [%string {|    [%%else]|}];
+          print_endline "";
+          print_endline [%string {|    let %{ml_sym} = %{fallback}|}];
+          print_endline "";
+          print_endline [%string {|    [%%endif]|}]);
+      print_string "    "
     *)
     [%%if defined JSC_SSLv23_method]
 
