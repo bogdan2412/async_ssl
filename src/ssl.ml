@@ -271,7 +271,7 @@ module Connection = struct
       then return ()
       else if !For_testing.slow_down_io_to_exhibit_truncation_bugs
       then (
-        let%bind () = Clock.after (Time.Span.of_sec 0.001) in
+        let%bind () = Clock_ns.after (Time_ns.Span.of_sec 0.001) in
         Pipe.pushback t.ssl_to_net)
       else Pipe.pushback t.ssl_to_net
     in
