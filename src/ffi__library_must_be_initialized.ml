@@ -53,6 +53,16 @@ module Verify_mode = struct
   ;;
 end
 
+module TLSEXT_nametype = struct
+  type t = Host_name
+
+  let to_int t =
+    let open Types.TLSEXT_nametype in
+    match t with
+    | Host_name -> host_name
+  ;;
+end
+
 let bigstring_strlen bigstr =
   let len = Bigstring.length bigstr in
   let idx = ref 0 in
@@ -570,6 +580,10 @@ module Ssl = struct
         "SSL_check_private_key error"
         (get_error_stack ())
         [%sexp_of: string list]
+  ;;
+
+  let get_servername context name_type =
+    Bindings.Ssl.get_servername context (TLSEXT_nametype.to_int name_type)
   ;;
 
   let set_tlsext_host_name context hostname =
