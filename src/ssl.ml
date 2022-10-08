@@ -631,6 +631,7 @@ let server
       ?(version = Version.default)
       ?(options = Opt.default)
       ?name
+      ?hostname
       ?allowed_ciphers
       ?ca_file
       ?ca_path
@@ -671,6 +672,21 @@ let server
          ~ssl_to_net)
   >>=? fun conn ->
   Connection.with_cleanup conn ~f:(fun () -> Connection.run_handshake conn)
+  >>=? fun () ->
+  let result =
+    let (module Ffi) = force ffi in
+    let received_hostname = Ffi.Ssl.get_servername conn.ssl Host_name in
+    match [%compare.equal: string option] hostname received_hostname with
+    | true -> Or_error.return ()
+    | false ->
+      Connection.cleanup conn;
+      Or_error.error_s
+        [%message
+          "Hostname mismatch"
+            ~expected:(hostname : string option)
+            (received_hostname : string option)]
+  in
+  return result
   >>=? fun () ->
   don't_wait_for
     (Connection.with_cleanup conn ~f:(fun () -> Connection.start_loops conn)
