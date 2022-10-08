@@ -696,7 +696,27 @@ let server
       ~net_to_ssl
       ~ssl_to_net)
   >>=? fun conn ->
-  Connection.with_cleanup conn ~f:(fun () -> Connection.run_handshake conn)
+  Connection.with_cleanup conn ~f:(fun () ->
+    Connection.run_handshake conn
+    >>| fun () ->
+    let (module Ffi) = force ffi in
+    let client_requested_hostname = Ffi.Ssl.get_servername conn.ssl Host_name in
+    match client_requested_hostname with
+    | None -> ()
+    | Some client_requested_hostname ->
+      (match Ffi.Ssl.get_certificate conn.ssl with
+       | None -> Or_error.error_string "No server certificate"
+       | Some certificate ->
+         let validation_result =
+           match Ffi.X509.check_host certificate client_requested_hostname with
+           | Ok () -> Ok ()
+           | Error hostname_error ->
+             (match Ffi.X509.check_ip certificate client_requested_hostname with
+              | Ok () -> Ok ()
+              | Error (_ : Error.t) -> Error hostname_error)
+         in
+         Or_error.tag ~tag:"TLS hostname validation failure" validation_result)
+      |> Or_error.ok_exn)
   >>=? fun () ->
   don't_wait_for
     (Connection.with_cleanup conn ~f:(fun () -> Connection.start_loops conn)

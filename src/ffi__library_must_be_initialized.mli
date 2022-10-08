@@ -27,6 +27,10 @@ module Ssl_error : sig
   [@@deriving sexp_of]
 end
 
+module TLSEXT_nametype : sig
+  type t = Host_name
+end
+
 module Ssl_ctx : sig
   type t [@@deriving sexp_of]
 
@@ -198,6 +202,7 @@ module Ssl : sig
 
   val check_private_key : t -> unit Or_error.t
   val set_verify : t -> Verify_mode.t list -> unit
+  val get_certificate : t -> X509.t option
   val get_peer_certificate : t -> X509.t option
   val get_peer_certificate_fingerprint : t -> [ `SHA1 ] -> string option
   val check_peer_certificate_host : t -> string -> unit Or_error.t
@@ -209,6 +214,7 @@ module Ssl : sig
   val session_reused : t -> bool
   val set_session : t -> Ssl_session.t -> unit Or_error.t
   val get1_session : t -> Ssl_session.t option
+  val get_servername : t -> TLSEXT_nametype.t -> string option
   val set_tlsext_host_name : t -> string -> unit Or_error.t
 
   (** Set the list of available ciphers for client or server connections. This is really
