@@ -198,7 +198,8 @@ val server
   :  ?version:Version.t
   -> ?options:Opt.t list
   -> ?name:string
-       (** Use [allowed_ciphers] to control which ciphers should be used. See comment in
+  -> ?hostname:string
+  (** Use [allowed_ciphers] to control which ciphers should be used. See comment in
       [client] above for more details. *)
   -> ?allowed_ciphers:[ `Secure | `Openssl_default | `Only of string list ]
   -> ?ca_file:string
