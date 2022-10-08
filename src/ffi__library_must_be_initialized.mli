@@ -185,6 +185,10 @@ module Rsa : sig
   val generate_key : key_length:int -> exponent:int -> unit -> t
 end
 
+module TLSEXT_nametype : sig
+  type t = Host_name
+end
+
 (* Represents an SSL connection. This follows the naming convention of libopenssl, but
    would perhaps better be named [Connection]. *)
 module Ssl : sig
@@ -223,6 +227,7 @@ module Ssl : sig
   val session_reused : t -> bool
   val set_session : t -> Ssl_session.t -> unit Or_error.t
   val get1_session : t -> Ssl_session.t option
+  val get_servername : t -> TLSEXT_nametype.t -> string option
   val set_tlsext_host_name : t -> string -> unit Or_error.t
 
   (** Set the list of available ciphers for client or server connections.
