@@ -184,6 +184,10 @@ module Types (F : Cstubs.Types.TYPE) = struct
   module Evp = struct
     let max_md_size = F.constant "EVP_MAX_MD_SIZE" F.int
   end
+
+  module TLSEXT_nametype = struct
+    let host_name = F.constant "TLSEXT_NAMETYPE_host_name" F.int
+  end
 end
 
 module Bindings (F : Cstubs.FOREIGN) = struct
@@ -630,6 +634,11 @@ module Bindings (F : Cstubs.FOREIGN) = struct
       foreign "SSL_set1_groups_list" Ctypes.(t @-> string @-> returning int)
     ;;
 
+    (* Returned object is owned by the SSL object and should not be freed by users *)
+    let get_certificate =
+      foreign "SSL_get_certificate" Ctypes.(t @-> returning X509.t_opt)
+    ;;
+
     (* free with X509_free() (source: manpage of SSL_get_peer_certificate(3)) *)
     let get_peer_certificate =
       foreign "SSL_get_peer_certificate" Ctypes.(t @-> returning X509.t_opt)
@@ -650,6 +659,10 @@ module Bindings (F : Cstubs.FOREIGN) = struct
     ;;
 
     let check_private_key = foreign "SSL_check_private_key" Ctypes.(t @-> returning int)
+
+    let get_servername =
+      foreign "SSL_get_servername" Ctypes.(t @-> int @-> returning string_opt)
+    ;;
 
     let set_tlsext_host_name =
       foreign "SSL_set_tlsext_host_name" Ctypes.(t @-> ptr char @-> returning int)
