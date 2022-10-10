@@ -41,6 +41,8 @@ end
 module Connection : sig
   type t [@@deriving sexp_of]
 
+  val flush : t -> unit Deferred.t
+
   (* Becomes determined when the ssl session has terminated and cleaned
      up. Includes the error in case of abnormal termination. *)
 
