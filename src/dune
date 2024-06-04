@@ -25,6 +25,7 @@
   (names ffi_generated_stubs)
   (flags
    (:standard \ -Werror -pedantic -Wall -Wunused -Wincompatible-pointer-types)
+   -Wno-error=incompatible-pointer-types
    -w
    (:include ../bindings/openssl-ccopt.sexp)
    -Wno-int-conversion
