@@ -636,7 +636,16 @@ let client
       ~ssl_to_net)
   >>=? fun conn ->
   Option.iter session ~f:(Session.reuse ~conn);
-  Connection.with_cleanup conn ~f:(fun () -> Connection.run_handshake conn)
+  Connection.with_cleanup conn ~f:(fun () ->
+    Connection.run_handshake conn
+    >>| fun () ->
+    match hostname with
+    | None -> ()
+    | Some hostname ->
+      Or_error.tag
+        ~tag:"TLS hostname validation failure"
+        (Connection.check_peer_certificate_host conn hostname)
+      |> Or_error.ok_exn)
   >>=? fun () ->
   Option.iter session ~f:(Session.remember ~conn);
   don't_wait_for
