@@ -553,6 +553,8 @@ module Ssl = struct
     Bindings.Ssl.set_verify t mode Ctypes.null
   ;;
 
+  let get_certificate t = Bindings.Ssl.get_certificate t
+
   let get_peer_certificate t =
     let cert = Bindings.Ssl.get_peer_certificate t in
     Option.iter cert ~f:(fun cert -> Gc.add_finalizer_exn cert Bindings.X509.free);

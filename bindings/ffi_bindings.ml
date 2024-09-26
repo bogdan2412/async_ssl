@@ -634,6 +634,11 @@ module Bindings (F : Cstubs.FOREIGN) = struct
       foreign "SSL_set1_groups_list" Ctypes.(t @-> string @-> returning int)
     ;;
 
+    (* Returned object is owned by the SSL object and should not be freed by users *)
+    let get_certificate =
+      foreign "SSL_get_certificate" Ctypes.(t @-> returning X509.t_opt)
+    ;;
+
     (* free with X509_free() (source: manpage of SSL_get_peer_certificate(3)) *)
     let get_peer_certificate =
       foreign "SSL_get_peer_certificate" Ctypes.(t @-> returning X509.t_opt)

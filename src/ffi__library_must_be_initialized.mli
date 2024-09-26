@@ -211,6 +211,7 @@ module Ssl : sig
 
   val check_private_key : t -> unit Or_error.t
   val set_verify : t -> Verify_mode.t list -> unit
+  val get_certificate : t -> X509.t option
   val get_peer_certificate : t -> X509.t option
   val get_peer_certificate_fingerprint : t -> [ `SHA1 ] -> string option
   val check_peer_certificate_host : t -> string -> unit Or_error.t
